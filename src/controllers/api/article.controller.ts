@@ -1,6 +1,7 @@
-import { Controller } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 import { Crud } from "@nestjsx/crud";
 import { Article } from "entities/article.entity";
+import { AddArticleDto } from "src/dtos/article/add.article.dto";
 import { ArticleService } from "src/services/article/article.service";
 
 
@@ -37,7 +38,10 @@ import { ArticleService } from "src/services/article/article.service";
     }
 })
 export class ArticleControler {
-    constructor(public service: ArticleService) {
-        
+    constructor(public service: ArticleService) {}
+
+    @Post('createFull')
+    createFullArticle(@Body() data: AddArticleDto) {
+        return this.service.createFullArticle(data);
     }
 }
