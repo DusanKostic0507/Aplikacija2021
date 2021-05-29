@@ -31,6 +31,7 @@
     "@nestjsx/crud-typeorm": "^5.0.0-alpha.3",
     "class-transformer": "^0.4.0",
     "fastify-swagger": "^4.7.0",
+    "jsonwebtoken": "^8.5.1",
     "mysql": "^2.18.1",
     "nestjs": "^0.0.1",
     "reflect-metadata": "^0.1.13",
