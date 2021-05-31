@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Param, Post, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Crud } from "@nestjsx/crud";
 import { StorageConfig } from "config/storage.config";
@@ -53,7 +53,7 @@ export class ArticleControler {
         return this.service.createFullArticle(data);
     }
 
-    @Post(':ip/uploadPhoto/')
+    @Post(':id/uploadPhoto/')
     @UseInterceptors(
         FileInterceptor('photo',{
             storage: diskStorage({
@@ -85,12 +85,14 @@ export class ArticleControler {
             }),
             fileFilter: (req, file, callback) => {
                 if (!file.originalname.toLowerCase().match(/\.(jpg|png)$/)) {
-                    callback(new Error('Bad file extension!'), false);
+                    req.fileFilterError = 'Bad file extension!';
+                    callback(null, false);
                     return;
                 }
 
                 if (!(file.mimetype.includes('jpeg') || file.mimetype.includes('png'))) {
-                    callback(new Error('Bad file content!'), false);
+                    req.fileFilterError = 'Bad file content!';
+                    callback(null, false);
                     return;
                 }
 
@@ -98,11 +100,23 @@ export class ArticleControler {
             },
             limits: {
                 files: 1,
-                fieldSize: StorageConfig.photoMaxFileSize,
+                fileSize: StorageConfig.photoMaxFileSize,
             }
         })
     )
-    async uploadPhoto(@Param('id') articleId: number, @UploadedFile() photo): Promise<ApiResponse | Photo> {
+    async uploadPhoto(
+        @Param('id') articleId: number, 
+        @UploadedFile() photo,
+        @Req() req
+    ): Promise<ApiResponse | Photo> {
+        if (req.fileFilterError) {
+            return new ApiResponse('error', -4002, req.fileFilterError);
+        }
+
+        if (!photo) {
+            return new ApiResponse('error', -4002, 'File not uploaded!');
+        }
+
         const newPhoto: Photo = new Photo();
         newPhoto.articleId = articleId;
         newPhoto.imagePath = photo.filename;
