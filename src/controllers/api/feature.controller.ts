@@ -1,29 +1,26 @@
 import { Controller } from "@nestjs/common";
 import { Crud } from "@nestjsx/crud";
-import { Category } from "src/entities/category.entity";
-import { CategoryService } from "src/services/category/category.service";
+import { Feature } from "src/entities/feature.entity";
+import { FeatureService } from "src/services/feature/feature.service";
 
-@Controller('api/category')
+@Controller('api/feature')
 @Crud({
     model: {
-        type: Category
+        type: Feature
     },
     params: {
         id: {
-            field: 'category_id',
+            field: 'featureId',
             type: 'number',
             primary: true
         }
     },
     query: {
         join: {
-            categories: {
+            category: {
                 eager: true
             },
-            features: {
-                eager: true
-            },
-            parentCategory: {
+            articleFeatures: {
                 eager: false
             },
             articles: {
@@ -32,8 +29,8 @@ import { CategoryService } from "src/services/category/category.service";
         }
     }
 })
-export class CategoryControler {
-    constructor(public service: CategoryService) {
+export class FeatureControler {
+    constructor(public service: FeatureService) {
         
     }
 }
