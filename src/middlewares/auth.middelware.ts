@@ -2,13 +2,18 @@ import { HttpException, HttpStatus, Injectable, NestMiddleware } from "@nestjs/c
 import { NextFunction, Request, Response } from "express";
 import { AdministratorService } from "src/services/administrator/administrator.service";
 import * as jwt from 'jsonwebtoken';
-import { JwtDataAdministratorDto } from "src/dtos/administrator/jwt.data.administrator.dto";
+import { JwtDataDto } from "src/dtos/auth/jwt.data.dto";
 import { jwtSecret } from "config/jwt.secret";
+import { UserService } from "src/services/user/user.service";
 
 @Injectable()
 export class AuthMiddlware implements NestMiddleware {
     
-    constructor( private readonly administratorService: AdministratorService) {}
+    constructor( 
+        public administratorService: AdministratorService,
+        public userService: UserService,
+    ) {}
+
     async use(req: Request, res: Response, next: NextFunction) {
         
         if (!req.headers.authorization) {
@@ -24,7 +29,7 @@ export class AuthMiddlware implements NestMiddleware {
 
         const tokenString = tokenParts[1];
 
-        let jwtData: JwtDataAdministratorDto;
+        let jwtData: JwtDataDto;
         
         try {jwtData = jwt.verify(tokenString, jwtSecret);
         } catch (e) {
@@ -45,9 +50,17 @@ export class AuthMiddlware implements NestMiddleware {
             throw new HttpException('Bad token found', HttpStatus.UNAUTHORIZED);
         }
 
-        const administrator = await this.administratorService.getById(jwtData.administratorId);
-        if (!administrator) {
-            throw new HttpException('Acount not found', HttpStatus.UNAUTHORIZED);
+        if (jwtData.role === "administrator") {
+
+            const administrator = await this.administratorService.getById(jwtData.id);
+            if (!administrator) {
+                throw new HttpException('Acount not found', HttpStatus.UNAUTHORIZED);
+            }
+        } else if (jwtData.role === "user") {
+            const user = await this.userService.getById(jwtData.id);
+            if (!user) {
+                throw new HttpException('Acount not found', HttpStatus.UNAUTHORIZED);
+            }
         }
 
         const trenutniTimestamp =new Date().getTime() / 1000;
