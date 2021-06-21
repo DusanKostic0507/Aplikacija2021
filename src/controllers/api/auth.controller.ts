@@ -12,7 +12,7 @@ import { UserRegistrationDto } from "src/dtos/user/user.registration.dto";
 import { UserService } from "src/services/user/user.service";
 import { LoginUserDto } from "src/dtos/user/login.user.dto";
 
-@Controller('auth/')
+@Controller('auth')
 export class AuthControler {
     constructor(
         public administratorService: AdministratorService,
