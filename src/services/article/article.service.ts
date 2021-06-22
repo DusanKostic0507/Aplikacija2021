@@ -14,7 +14,7 @@ import { ArticleSearchDto } from "src/dtos/article/article.search.dto";
 export class ArticleService extends TypeOrmCrudService<Article> {
     constructor(
         @InjectRepository(Article)
-        private readonly article: Repository<Article>, 
+        private readonly article: Repository<Article>,
 
         @InjectRepository(ArticlePrice)
         private readonly articlePrice: Repository<ArticlePrice>,
@@ -22,7 +22,7 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         @InjectRepository(ArticleFeature)
         private readonly articleFeature: Repository<ArticleFeature>,
 
-        ) {
+    ) {
         super(article);
     }
 
@@ -49,7 +49,7 @@ export class ArticleService extends TypeOrmCrudService<Article> {
 
             await this.articleFeature.save(newArticleFeature);
         }
-        
+
         return await this.article.findOne(savedArticle.articleId, {
             relations: [
                 "category",
@@ -62,14 +62,14 @@ export class ArticleService extends TypeOrmCrudService<Article> {
 
     async editFullArticle(articleId: number, data: EditArticleDto): Promise<Article | ApiResponse> {
         const existingArticle: Article = await this.article.findOne(articleId, {
-            relations: [ 'articlePrices', 'articleFeatures' ]
+            relations: ['articlePrices', 'articleFeatures']
         });
-        
+
         if (!existingArticle) {
             return new ApiResponse('error', -5001, 'Article not found.');
         }
 
-        
+
         existingArticle.name = data.name;
         existingArticle.categoryId = data.categoryId;
         existingArticle.excerpt = data.excerpt;
@@ -83,10 +83,10 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         }
 
         const newPriceString: string = Number(data.price).toFixed(2);
-        const lastPrice = existingArticle.articlePrices[existingArticle.articlePrices.length-1].price;
+        const lastPrice = existingArticle.articlePrices[existingArticle.articlePrices.length - 1].price;
         const lastPriceString: string = Number(lastPrice).toFixed(2);
 
-        if (newPriceString!== lastPriceString) {
+        if (newPriceString !== lastPriceString) {
             const newArticlePrice = new ArticlePrice();
             newArticlePrice.articleId = articleId;
             newArticlePrice.price = data.price;
@@ -105,7 +105,7 @@ export class ArticleService extends TypeOrmCrudService<Article> {
                 newArticleFeature.articleId = articleId;
                 newArticleFeature.featureId = feature.featureId;
                 newArticleFeature.value = feature.value;
-    
+
                 await this.articleFeature.save(newArticleFeature);
             }
         }
@@ -125,30 +125,30 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         const builder = await this.article.createQueryBuilder("article");
 
         builder.innerJoinAndSelect(
-            "article.articlePrices", 
-            "ap", 
+            "article.articlePrices",
+            "ap",
             "ap.createdAt = (SELECT MAX(ap.created_at) FROM article_price AS ap WHERE ap.article_id = article.article_id)"
         );
 
         builder.leftJoinAndSelect("article.articleFeatures", "af");
 
-        builder.where('article.categoryId = :categoryId', {categoryId: data.categoryId});
+        builder.where('article.categoryId = :categoryId', { categoryId: data.categoryId });
 
-        if(data.keywords && data.keywords.length > 0) {
-            builder.andWhere('(article.name LIKE :kw OR article.excerpt LIKE :kw OR article.description LIKE :kw)', { kw: '%' + data.keywords + '%'});
+        if (data.keywords && data.keywords.length > 0) {
+            builder.andWhere('(article.name LIKE :kw OR article.excerpt LIKE :kw OR article.description LIKE :kw)', { kw: '%' + data.keywords + '%' });
         }
 
-        if (data.priceMin && typeof data.priceMin === 'number' ) {
-            builder.andWhere('ap.price >= :min',{min: data.priceMin});
+        if (data.priceMin && typeof data.priceMin === 'number') {
+            builder.andWhere('ap.price >= :min', { min: data.priceMin });
         }
 
-        if (data.priceMax && typeof data.priceMax === 'number' ) {
-            builder.andWhere('ap.price <= :max',{max: data.priceMin});
+        if (data.priceMax && typeof data.priceMax === 'number') {
+            builder.andWhere('ap.price <= :max', { max: data.priceMax });
         }
 
         if (data.features && data.features.length > 0) {
             for (const feature of data.features) {
-                builder.andWhere('af.featureId = :fId AND af.value IN (:fVals', 
+                builder.andWhere('af.featureId = :fId AND af.value IN (:fVals)',
                     {
                         fId: feature.featureId,
                         fVals: feature.values,
