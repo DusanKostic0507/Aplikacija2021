@@ -34,13 +34,13 @@ export class Order {
   @Column({
     type: "enum", 
     nullable: true,
-    enum: ["rejected", "eccepted", "shipped", "pending"],
+    enum: ["rejected", "accepted", "shipped", "pending"],
     default: () => "'pending'",
   })
   @Validator.IsNotEmpty()
   @Validator.IsString()
-  @Validator.IsIn(["rejected", "eccepted", "shipped", "pending"])
-  status: "rejected" | "eccepted" | "shipped" | "pending" | null;
+  @Validator.IsIn(["rejected", "accepted", "shipped", "pending"])
+  status: "rejected" | "accepted" | "shipped" | "pending";
 
   @OneToOne(() => Cart, (cart) => cart.order, {
     onDelete: "NO ACTION",
