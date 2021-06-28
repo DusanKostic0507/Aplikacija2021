@@ -69,7 +69,7 @@ export class UserService extends TypeOrmCrudService<User> {
         return await this.userToken.save(userToken);
     }
 
-    async getUserToken(token: string): Promise<UserToken | ApiResponse> {
+    async getUserToken(token: string): Promise<UserToken> {
         return await this.userToken.findOne({
             token: token,
         });

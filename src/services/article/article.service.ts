@@ -121,7 +121,7 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         });
     }
 
-    async search(data: ArticleSearchDto): Promise<Article[]> {
+    async search(data: ArticleSearchDto): Promise<Article[] | ApiResponse> {
         const builder = await this.article.createQueryBuilder("article");
 
         builder.innerJoinAndSelect(
@@ -131,6 +131,8 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         );
 
         builder.leftJoinAndSelect("article.articleFeatures", "af");
+        builder.leftJoinAndSelect("article.features", "features");
+        builder.leftJoinAndSelect("article.photos", "photos");
 
         builder.where('article.categoryId = :categoryId', { categoryId: data.categoryId });
 
@@ -192,17 +194,12 @@ export class ArticleService extends TypeOrmCrudService<Article> {
         builder.skip(page * perPage);
         builder.take(perPage);
 
-        let articleIds = await (await builder.getMany()).map(article => article.articleId);
+        let articles = await builder.getMany();
 
-        return await this.article.find({
-            where: { articleId: In(articleIds) },
-            relations: [
-                "category",
-                "articleFeatures",
-                "features",
-                "articlePrices",
-                "photos"
-            ]
-        });
+        if (articles.length == 0) {
+            return new ApiResponse("ok", 0, "No articles found for these search parameters.!")
+        }
+        return articles;
+        
     }
 }
